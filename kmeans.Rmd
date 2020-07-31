@@ -1,0 +1,84 @@
+---
+title: "K-means clustering iris dataset"
+author: "Germán Hernández"
+date: "31/7/2020"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Summary
+This applications let us see the clustering made by the k-means technique, using the data set `iris`.
+We can increase the number of cluster that we wants until 9, and choose between the variables:
+- Sepal.Widht
+- Sepal.Lenght
+- Petal.Lenght and
+- Petal.Width
+
+k-means only works with numerical variables, so don't give the user the option to select a categorical variable.
+
+## Reproducible Pitch
+
+This is a task for the data science coursera course about developing data products for week 4. As part of this, I have created a shiny app and deployed it on the shiny server. The link is  https://germanhdzc.shinyapps.io/kmeans/ . The code can be found at https://github.com/GermanHdzC/Developing-Data-Products-App.
+
+## Exploratory Data Analysis
+
+First of all we show a summary of Iris dataset to see the variables that we have
+
+```{r}
+summary(iris)
+```
+
+## UI code
+
+```{r cars, echo = TRUE, eval=FALSE}
+library(ggplot2)
+library(shiny)
+
+# Define UI for application that draws a histogram
+vars <- setdiff(names(iris), "Species")
+
+ui = pageWithSidebar(
+    headerPanel('Iris k-means clustering'),
+    sidebarPanel(
+        selectInput('xcol', 'X Variable', vars),
+        selectInput('ycol', 'Y Variable', vars, selected = vars[[2]]),
+        numericInput('clusters', 'Cluster count', 3, min = 1, max = 9)
+    ),
+    mainPanel(
+        plotOutput('plot1')
+    )
+)
+```
+
+## Server code
+
+```{r, echo=TRUE, eval=FALSE}
+server = function(input, output, session) {
+    
+    # Combine the selected variables into a new data frame
+    selectedData <- reactive({
+        iris[, c(input$xcol, input$ycol)]
+    })
+    
+    clusters <- reactive({
+        kmeans(selectedData(), input$clusters)
+    })
+    
+    output$plot1 <- renderPlot({
+        palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
+                  "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"))
+        
+        par(mar = c(5.1, 4.1, 0, 1))
+        plot(selectedData(),
+             col = clusters()$cluster,
+             pch = 20, cex = 3)
+        points(clusters()$centers, pch = 4, cex = 4, lwd = 4)
+    })
+    
+}
+```
+
+
